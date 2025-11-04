@@ -16,9 +16,10 @@ import { db } from '@/lib/firebase';
 import { COLLECTIONS } from '@/constants';
 import { Team, TeamStatus } from '@/types';
 
-export const createTeam = async (name: string): Promise<string> => {
+export const createTeam = async (name: string, password: string): Promise<string> => {
   const teamData = {
     name,
+    password, // 4-digit code
     currentRoom: 1,
     status: 'waiting' as TeamStatus,
     totalTime: 0,
@@ -123,4 +124,13 @@ export const subscribeToTeamsByRoom = (
     const teams = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team));
     callback(teams);
   });
+};
+
+export const validateTeamPassword = async (
+  teamId: string,
+  password: string
+): Promise<boolean> => {
+  const team = await getTeam(teamId);
+  if (!team) return false;
+  return team.password === password;
 };

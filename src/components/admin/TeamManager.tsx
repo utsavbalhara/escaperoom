@@ -4,22 +4,38 @@ import React, { useState } from 'react';
 import { useRealtimeAllTeams } from '@/hooks/useRealtimeTeam';
 import Button from '@/components/shared/Button';
 import RoboticText from '@/components/shared/RoboticText';
+import TeamProgressHistory from './TeamProgressHistory';
 import { createTeam, deleteTeam, updateTeamStatus } from '@/lib/db/teams';
 import { Team, TeamStatus } from '@/types';
 
 export default function TeamManager() {
   const { teams, loading } = useRealtimeAllTeams();
   const [newTeamName, setNewTeamName] = useState('');
+  const [newTeamPassword, setNewTeamPassword] = useState('');
   const [creating, setCreating] = useState(false);
+  const [viewingHistory, setViewingHistory] = useState<Team | null>(null);
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTeamName.trim()) return;
+    if (!newTeamName.trim()) {
+      alert('Please enter a team name');
+      return;
+    }
+    if (!newTeamPassword.trim()) {
+      alert('Please enter a 4-digit password');
+      return;
+    }
+    if (!/^\d{4}$/.test(newTeamPassword.trim())) {
+      alert('Password must be exactly 4 digits');
+      return;
+    }
 
     setCreating(true);
     try {
-      await createTeam(newTeamName.trim());
+      await createTeam(newTeamName.trim(), newTeamPassword.trim());
       setNewTeamName('');
+      setNewTeamPassword('');
+      alert(`Team created! Password: ${newTeamPassword.trim()} (Share this with the team)`);
     } catch (error) {
       console.error('Error creating team:', error);
       alert('Error creating team');
@@ -86,6 +102,26 @@ export default function TeamManager() {
     );
   }
 
+  // If viewing history, show history component
+  if (viewingHistory) {
+    return (
+      <div>
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => setViewingHistory(null)}
+          className="mb-4"
+        >
+          ← Back to Teams
+        </Button>
+        <TeamProgressHistory
+          teamId={viewingHistory.id}
+          teamName={viewingHistory.name}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="card">
       <RoboticText size="xl" glow className="mb-6">
@@ -94,26 +130,53 @@ export default function TeamManager() {
 
       {/* Create Team Form */}
       <form onSubmit={handleCreateTeam} className="mb-6">
-        <label htmlFor="teamName">Create New Team:</label>
-        <div className="flex gap-3">
-          <input
-            id="teamName"
-            type="text"
-            value={newTeamName}
-            onChange={(e) => setNewTeamName(e.target.value)}
-            placeholder="Enter team name..."
-            className="flex-1"
-            disabled={creating}
-          />
-          <Button
-            type="submit"
-            variant="success"
-            size="md"
-            disabled={!newTeamName.trim() || creating}
-          >
-            {creating ? 'Creating...' : '+ Create'}
-          </Button>
+        <label className="block mb-2">Create New Team:</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+          <div>
+            <label htmlFor="teamName" className="text-sm text-primary/70">
+              Team Name
+            </label>
+            <input
+              id="teamName"
+              type="text"
+              value={newTeamName}
+              onChange={(e) => setNewTeamName(e.target.value)}
+              placeholder="Enter team name..."
+              className="w-full"
+              disabled={creating}
+            />
+          </div>
+          <div>
+            <label htmlFor="teamPassword" className="text-sm text-primary/70">
+              4-Digit Password
+            </label>
+            <input
+              id="teamPassword"
+              type="text"
+              value={newTeamPassword}
+              onChange={(e) => {
+                const val = e.target.value.replace(/\D/g, '').slice(0, 4);
+                setNewTeamPassword(val);
+              }}
+              placeholder="0000"
+              maxLength={4}
+              className="w-full font-mono text-xl"
+              disabled={creating}
+            />
+          </div>
         </div>
+        <Button
+          type="submit"
+          variant="success"
+          size="md"
+          disabled={!newTeamName.trim() || newTeamPassword.length !== 4 || creating}
+          className="w-full"
+        >
+          {creating ? 'Creating...' : '+ Create Team'}
+        </Button>
+        <p className="text-xs text-primary/50 mt-2">
+          💡 The 4-digit password will be shared with the team for login.
+        </p>
       </form>
 
       {/* Teams List */}
@@ -143,6 +206,9 @@ export default function TeamManager() {
                       <span className="text-primary/50">
                         Room: {team.currentRoom}
                       </span>
+                      <span className="text-secondary font-mono">
+                        🔒 {team.password}
+                      </span>
                     </div>
                   </div>
 
@@ -159,6 +225,14 @@ export default function TeamManager() {
                       <option value="eliminated">Eliminated</option>
                       <option value="completed">Completed</option>
                     </select>
+
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setViewingHistory(team)}
+                    >
+                      History
+                    </Button>
 
                     <Button
                       variant="danger"

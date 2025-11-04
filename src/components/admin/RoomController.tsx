@@ -7,6 +7,7 @@ import { useRealtimeTeam } from '@/hooks/useRealtimeTeam';
 import { useRealtimeTeamsByRoom } from '@/hooks/useRealtimeTeam';
 import ContentEditor from './ContentEditor';
 import TimerControls from './TimerControls';
+import AttemptHistoryViewer from './AttemptHistoryViewer';
 import Button from '@/components/shared/Button';
 import RoboticText from '@/components/shared/RoboticText';
 import { setActiveTeam, clearActiveRoom } from '@/lib/db/activeRooms';
@@ -125,6 +126,17 @@ export default function RoomController({ roomNumber, onBack }: RoomControllerPro
           <TimerControls room={room} activeRoom={activeRoom} />
         )}
       </div>
+
+      {/* Attempt History */}
+      {currentTeam && (
+        <div className="mb-6">
+          <AttemptHistoryViewer
+            teamId={currentTeam.id}
+            teamName={currentTeam.name}
+            roomNumber={roomNumber}
+          />
+        </div>
+      )}
 
       {/* Content Editor */}
       <ContentEditor room={room} />

@@ -6,6 +6,7 @@ export type ProgressStatus = 'not-started' | 'in-progress' | 'completed' | 'fail
 export interface Team {
   id: string;
   name: string;
+  password: string; // 4-digit code for team authentication
   currentRoom: number;
   status: TeamStatus;
   totalTime: number;
