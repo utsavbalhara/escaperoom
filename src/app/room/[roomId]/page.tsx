@@ -83,10 +83,18 @@ export default function RoomPage({ params }: PageProps) {
         const teamData = await getTeam(activeRoomData.currentTeamId);
 
         if (teamData && teamData.status !== 'eliminated') {
+          // Get the existing progress to restore attempts remaining
+          const progressData = await getProgress(teamData.id, roomNumber);
+
           // Resume the existing session WITHOUT restarting anything
           setCurrentTeamId(teamData.id);
           setCurrentTeamName(teamData.name);
           setGameState('playing');
+
+          // Restore attempts remaining from existing progress
+          if (progressData) {
+            setAttemptsRemaining(progressData.attemptsRemaining);
+          }
 
           // Save to localStorage for convenience
           saveTeamSession(teamData.id, teamData.name);
@@ -101,12 +109,6 @@ export default function RoomPage({ params }: PageProps) {
     checkForActiveSession();
   }, []); // Only run on mount
 
-  useEffect(() => {
-    if (room && currentTeamId && gameState === 'playing') {
-      setAttemptsRemaining(room.maxAttempts);
-    }
-  }, [room, currentTeamId, gameState]);
-
   const handleTeamSelect = async (teamId: string, teamName: string) => {
     try {
       setCurrentTeamId(teamId);
@@ -118,6 +120,7 @@ export default function RoomPage({ params }: PageProps) {
       // Create progress record
       if (room) {
         await createProgress(teamId, roomNumber, room.maxAttempts);
+        setAttemptsRemaining(room.maxAttempts); // Initialize attempts for new session
       }
 
       // Update team status
