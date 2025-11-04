@@ -10,6 +10,7 @@ export interface Team {
   currentRoom: number;
   status: TeamStatus;
   totalTime: number;
+  sessionStartTime: Timestamp | null; // When team entered their password
   createdAt: Timestamp;
 }
 
@@ -61,9 +62,10 @@ export interface Config {
 export interface LeaderboardEntry {
   teamId: string;
   teamName: string;
-  roomsCompleted: number;
+  currentLevel: number; // Current room the team is on
+  roomsCompleted: number; // Number of rooms completed (for display)
+  sessionStartTime: Timestamp | null; // When team started (for first-come-first-serve sorting)
   totalAttempts: number;
-  totalTime: number; // in seconds
   lastUpdated: Timestamp;
 }
 

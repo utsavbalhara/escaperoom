@@ -23,6 +23,7 @@ export const createTeam = async (name: string, password: string): Promise<string
     currentRoom: 1,
     status: 'waiting' as TeamStatus,
     totalTime: 0,
+    sessionStartTime: null, // Set when team first enters password
     createdAt: Timestamp.now(),
   };
 
@@ -133,4 +134,24 @@ export const validateTeamPassword = async (
   const team = await getTeam(teamId);
   if (!team) return false;
   return team.password === password;
+};
+
+export const startTeamSession = async (teamId: string): Promise<void> => {
+  const team = await getTeam(teamId);
+  if (!team) return;
+
+  // Only set sessionStartTime if not already set
+  if (!team.sessionStartTime) {
+    await updateDoc(doc(db, COLLECTIONS.TEAMS, teamId), {
+      sessionStartTime: Timestamp.now(),
+    });
+  }
+};
+
+export const getTeamSessionTime = (team: Team): number => {
+  if (!team.sessionStartTime) return 0;
+
+  const now = Date.now();
+  const startTime = team.sessionStartTime.toMillis();
+  return Math.floor((now - startTime) / 1000); // Return seconds
 };

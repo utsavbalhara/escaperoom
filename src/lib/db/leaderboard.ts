@@ -18,15 +18,17 @@ import { LeaderboardEntry } from '@/types';
 export const updateLeaderboard = async (
   teamId: string,
   teamName: string,
+  currentLevel: number,
   roomsCompleted: number,
-  totalAttempts: number,
-  totalTime: number
+  sessionStartTime: Timestamp | null,
+  totalAttempts: number
 ): Promise<void> => {
   const leaderboardData: Omit<LeaderboardEntry, 'teamId'> = {
     teamName,
+    currentLevel,
     roomsCompleted,
+    sessionStartTime,
     totalAttempts,
-    totalTime,
     lastUpdated: Timestamp.now(),
   };
 
@@ -53,12 +55,16 @@ export const getLeaderboard = async (): Promise<LeaderboardEntry[]> => {
   const querySnapshot = await getDocs(collection(db, COLLECTIONS.LEADERBOARD));
   const entries = querySnapshot.docs.map(doc => doc.data() as LeaderboardEntry);
 
-  // Sort by roomsCompleted DESC, then totalTime ASC
+  // Sort by currentLevel DESC (higher level = better rank)
+  // Then by sessionStartTime ASC (first come first serve)
   return entries.sort((a, b) => {
-    if (b.roomsCompleted !== a.roomsCompleted) {
-      return b.roomsCompleted - a.roomsCompleted;
+    if (b.currentLevel !== a.currentLevel) {
+      return b.currentLevel - a.currentLevel;
     }
-    return a.totalTime - b.totalTime;
+    // First-come-first-serve: earlier sessionStartTime ranks higher
+    const aTime = a.sessionStartTime?.toMillis() || Number.MAX_VALUE;
+    const bTime = b.sessionStartTime?.toMillis() || Number.MAX_VALUE;
+    return aTime - bTime;
   });
 };
 
@@ -69,12 +75,16 @@ export const subscribeToLeaderboard = (
   return onSnapshot(collection(db, COLLECTIONS.LEADERBOARD), querySnapshot => {
     const entries = querySnapshot.docs.map(doc => doc.data() as LeaderboardEntry);
 
-    // Sort by roomsCompleted DESC, then totalTime ASC
+    // Sort by currentLevel DESC (higher level = better rank)
+    // Then by sessionStartTime ASC (first come first serve)
     const sorted = entries.sort((a, b) => {
-      if (b.roomsCompleted !== a.roomsCompleted) {
-        return b.roomsCompleted - a.roomsCompleted;
+      if (b.currentLevel !== a.currentLevel) {
+        return b.currentLevel - a.currentLevel;
       }
-      return a.totalTime - b.totalTime;
+      // First-come-first-serve: earlier sessionStartTime ranks higher
+      const aTime = a.sessionStartTime?.toMillis() || Number.MAX_VALUE;
+      const bTime = b.sessionStartTime?.toMillis() || Number.MAX_VALUE;
+      return aTime - bTime;
     });
 
     callback(sorted);
@@ -85,15 +95,14 @@ export const calculateAndUpdateLeaderboard = async (
   teamId: string,
   teamName: string
 ): Promise<void> => {
-  // This would typically fetch team progress and calculate stats
-  // For now, we'll implement a simplified version
-  const team = await getDoc(doc(db, COLLECTIONS.TEAMS, teamId));
-  if (!team.exists()) return;
+  const teamDoc = await getDoc(doc(db, COLLECTIONS.TEAMS, teamId));
+  if (!teamDoc.exists()) return;
 
-  const teamData = team.data();
-  const roomsCompleted = teamData.currentRoom - 1;
+  const teamData = teamDoc.data();
+  const currentLevel = teamData.currentRoom; // Current room team is on
+  const roomsCompleted = Math.max(0, teamData.currentRoom - 1); // Rooms actually completed
 
-  // Get all progress records for this team to calculate totals
+  // Get all progress records for this team
   const progressQuery = query(
     collection(db, COLLECTIONS.TEAM_PROGRESS),
     // @ts-ignore
@@ -104,13 +113,18 @@ export const calculateAndUpdateLeaderboard = async (
 
   const progressSnap = await getDocs(progressQuery);
   let totalAttempts = 0;
-  let totalTime = 0;
 
   progressSnap.forEach(doc => {
     const data = doc.data();
     totalAttempts += data.attempts?.length || 0;
-    totalTime += data.timeElapsed || 0;
   });
 
-  await updateLeaderboard(teamId, teamName, roomsCompleted, totalAttempts, totalTime);
+  await updateLeaderboard(
+    teamId,
+    teamName,
+    currentLevel,
+    roomsCompleted,
+    teamData.sessionStartTime || null,
+    totalAttempts
+  );
 };

@@ -5,7 +5,8 @@ import { Team } from '@/types';
 import Button from '@/components/shared/Button';
 import TeamPasswordVerify from './TeamPasswordVerify';
 import { useRealtimeTeamsByRoom } from '@/hooks/useRealtimeTeam';
-import { validateTeamPassword } from '@/lib/db/teams';
+import { validateTeamPassword, startTeamSession } from '@/lib/db/teams';
+import { saveTeamSession } from '@/lib/auth-storage';
 import Loading from '@/components/shared/Loading';
 
 interface TeamSelectorProps {
@@ -30,8 +31,14 @@ export default function TeamSelector({ roomNumber, onTeamSelect }: TeamSelectorP
     const isValid = await validateTeamPassword(selectedTeamId, password);
 
     if (isValid) {
+      // Start the team's session timer
+      await startTeamSession(selectedTeamId);
+
       const selectedTeam = teams.find(t => t.id === selectedTeamId);
       if (selectedTeam) {
+        // Save authenticated session to localStorage for persistence across refreshes
+        saveTeamSession(selectedTeamId, selectedTeam.name);
+
         onTeamSelect(selectedTeamId, selectedTeam.name);
       }
       return true;

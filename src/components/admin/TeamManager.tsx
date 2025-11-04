@@ -5,6 +5,7 @@ import { useRealtimeAllTeams } from '@/hooks/useRealtimeTeam';
 import Button from '@/components/shared/Button';
 import RoboticText from '@/components/shared/RoboticText';
 import TeamProgressHistory from './TeamProgressHistory';
+import AdvancedTeamControls from './AdvancedTeamControls';
 import { createTeam, deleteTeam, updateTeamStatus } from '@/lib/db/teams';
 import { Team, TeamStatus } from '@/types';
 
@@ -14,6 +15,7 @@ export default function TeamManager() {
   const [newTeamPassword, setNewTeamPassword] = useState('');
   const [creating, setCreating] = useState(false);
   const [viewingHistory, setViewingHistory] = useState<Team | null>(null);
+  const [expandedTeamId, setExpandedTeamId] = useState<string | null>(null);
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -227,6 +229,14 @@ export default function TeamManager() {
                     </select>
 
                     <Button
+                      variant="success"
+                      size="sm"
+                      onClick={() => setExpandedTeamId(expandedTeamId === team.id ? null : team.id)}
+                    >
+                      {expandedTeamId === team.id ? 'Hide' : 'Controls'}
+                    </Button>
+
+                    <Button
                       variant="secondary"
                       size="sm"
                       onClick={() => setViewingHistory(team)}
@@ -243,6 +253,13 @@ export default function TeamManager() {
                     </Button>
                   </div>
                 </div>
+
+                {/* Advanced Controls - Expandable */}
+                {expandedTeamId === team.id && (
+                  <div className="mt-3 pt-3 border-t-2 border-primary/20">
+                    <AdvancedTeamControls team={team} onUpdate={() => {}} />
+                  </div>
+                )}
               </div>
             ))}
           </div>

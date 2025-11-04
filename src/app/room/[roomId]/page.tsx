@@ -13,6 +13,7 @@ import Leaderboard from '@/components/player/Leaderboard';
 import LevelUpScreen from '@/components/player/LevelUpScreen';
 import GameOverScreen from '@/components/player/GameOverScreen';
 import VictoryScreen from '@/components/player/VictoryScreen';
+import SessionClock from '@/components/player/SessionClock';
 import Loading from '@/components/shared/Loading';
 import { useRealtimeRoom } from '@/hooks/useRealtimeRoom';
 import { useRealtimeActiveRoom } from '@/hooks/useRealtimeActiveRoom';
@@ -21,6 +22,7 @@ import {
   setActiveTeam,
   startTimer,
   clearActiveRoom,
+  getActiveRoom,
 } from '@/lib/db/activeRooms';
 import {
   createProgress,
@@ -33,12 +35,17 @@ import {
 import {
   updateTeamStatus,
   moveTeamToNextRoom,
+  getTeam,
 } from '@/lib/db/teams';
 import {
   calculateAndUpdateLeaderboard,
 } from '@/lib/db/leaderboard';
 import { TOTAL_ROOMS } from '@/constants';
 import Button from '@/components/shared/Button';
+import {
+  saveTeamSession,
+  clearTeamSession,
+} from '@/lib/auth-storage';
 
 interface PageProps {
   params: Promise<{ roomId: string }>;
@@ -64,6 +71,35 @@ export default function RoomPage({ params }: PageProps) {
 
   // Room 1 (Basecamp) - special handling
   const isBasecamp = roomNumber === 1;
+
+  // Auto-resume existing session from database on mount
+  useEffect(() => {
+    const checkForActiveSession = async () => {
+      // Check if there's already an active team in this room
+      const activeRoomData = await getActiveRoom(roomNumber);
+
+      if (activeRoomData && activeRoomData.currentTeamId) {
+        // There's an active team, verify it still exists and is valid
+        const teamData = await getTeam(activeRoomData.currentTeamId);
+
+        if (teamData && teamData.status !== 'eliminated') {
+          // Resume the existing session WITHOUT restarting anything
+          setCurrentTeamId(teamData.id);
+          setCurrentTeamName(teamData.name);
+          setGameState('playing');
+
+          // Save to localStorage for convenience
+          saveTeamSession(teamData.id, teamData.name);
+        } else {
+          // Team is invalid, clear the active room
+          await clearActiveRoom(roomNumber);
+          clearTeamSession();
+        }
+      }
+    };
+
+    checkForActiveSession();
+  }, []); // Only run on mount
 
   useEffect(() => {
     if (room && currentTeamId && gameState === 'playing') {
@@ -185,6 +221,9 @@ export default function RoomPage({ params }: PageProps) {
     // Clear active room
     await clearActiveRoom(roomNumber);
 
+    // Clear stored session (team is eliminated)
+    clearTeamSession();
+
     // Show game over
     setGameOverReason(reason);
     setGameState('game-over');
@@ -248,6 +287,9 @@ export default function RoomPage({ params }: PageProps) {
   // Main Game Screen
   return (
     <div className="min-h-screen p-6">
+      {/* Session Clock */}
+      <SessionClock team={team} />
+
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Game Area */}
