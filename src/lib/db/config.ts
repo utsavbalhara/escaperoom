@@ -15,6 +15,7 @@ export interface Config {
   basecampCompleted: boolean;
   maxTeams?: number;
   allowTeamCreation?: boolean;
+  roomNames?: { [key: number]: string }; // Custom room names
   createdAt: Date;
   updatedAt: Date;
 }
@@ -71,4 +72,15 @@ export const getRoomSequence = async (): Promise<number[]> => {
 
 export const updateRoomSequence = async (sequence: number[]): Promise<void> => {
   await updateConfig({ roomSequence: sequence });
+};
+
+export const getRoomNames = async (): Promise<{ [key: number]: string }> => {
+  const config = await getConfig();
+  return config?.roomNames || {};
+};
+
+export const updateRoomName = async (roomNumber: number, name: string): Promise<void> => {
+  const currentNames = await getRoomNames();
+  currentNames[roomNumber] = name;
+  await updateConfig({ roomNames: currentNames });
 };

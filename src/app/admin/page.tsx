@@ -5,10 +5,13 @@ import LoginForm from '@/components/admin/LoginForm';
 import GlobalDashboard from '@/components/admin/GlobalDashboard';
 import RoomController from '@/components/admin/RoomController';
 import TeamManager from '@/components/admin/TeamManager';
+import DataResetControls from '@/components/admin/DataResetControls';
+import LeaderboardEditor from '@/components/admin/LeaderboardEditor';
+import RoomNameEditor from '@/components/admin/RoomNameEditor';
 import Button from '@/components/shared/Button';
 import Link from 'next/link';
 
-type AdminView = 'dashboard' | 'room' | 'teams';
+type AdminView = 'dashboard' | 'room' | 'teams' | 'leaderboard' | 'rooms' | 'settings';
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -68,6 +71,27 @@ export default function AdminPage() {
               >
                 Teams
               </Button>
+              <Button
+                variant={currentView === 'leaderboard' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setCurrentView('leaderboard')}
+              >
+                Leaderboard
+              </Button>
+              <Button
+                variant={currentView === 'rooms' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setCurrentView('rooms')}
+              >
+                Rooms
+              </Button>
+              <Button
+                variant={currentView === 'settings' ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setCurrentView('settings')}
+              >
+                Settings
+              </Button>
             </div>
           </div>
 
@@ -89,6 +113,12 @@ export default function AdminPage() {
         )}
 
         {currentView === 'teams' && <TeamManager />}
+
+        {currentView === 'leaderboard' && <LeaderboardEditor />}
+
+        {currentView === 'rooms' && <RoomNameEditor />}
+
+        {currentView === 'settings' && <DataResetControls />}
       </div>
     </div>
   );
