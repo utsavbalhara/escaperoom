@@ -293,61 +293,62 @@ export default function RoomPage({ params }: PageProps) {
       {/* Session Clock */}
       <SessionClock team={team} />
 
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Game Area */}
-          <div className="lg:col-span-2">
-            <RoomHeader roomNumber={roomNumber} teamName={currentTeamName} />
+      {/* Main Content Grid */}
+      <div className="flex gap-6 max-w-[1600px] mx-auto">
+        {/* Main Game Area */}
+        <div className="flex-1 max-w-4xl">
+          <RoomHeader roomNumber={roomNumber} teamName={currentTeamName} />
 
-            {/* Timer (not for basecamp) */}
-            {!isBasecamp && activeRoom && room.timerDuration > 0 && (
-              <Timer
-                timerStarted={activeRoom.timerStarted}
-                timerDuration={room.timerDuration}
-                timerPaused={activeRoom.timerPaused}
-                onTimeout={handleTimeout}
-              />
-            )}
-
-            {/* TTS Player */}
-            <TTSPlayer
-              text={room.ttsText}
-              autoPlay={true}
-              manualTrigger={activeRoom?.manualTTSTrigger}
+          {/* Timer (not for basecamp) */}
+          {!isBasecamp && activeRoom && room.timerDuration > 0 && (
+            <Timer
+              timerStarted={activeRoom.timerStarted}
+              timerDuration={room.timerDuration}
+              timerPaused={activeRoom.timerPaused}
+              onTimeout={handleTimeout}
             />
+          )}
 
-            {/* Question Display */}
-            <QuestionDisplay questionText={room.questionText} />
+          {/* TTS Player */}
+          <TTSPlayer
+            text={room.ttsText}
+            autoPlay={true}
+            manualTrigger={activeRoom?.manualTTSTrigger}
+          />
 
-            {/* Basecamp Special: Just Continue Button */}
-            {isBasecamp ? (
-              <div className="text-center mt-8">
-                <Button
-                  variant="primary"
-                  size="lg"
-                  onClick={handleBasecampContinue}
-                  className="text-2xl px-12"
-                >
-                  CONTINUE TO CHALLENGES →
-                </Button>
-              </div>
-            ) : (
-              <>
-                {/* Hint Button */}
-                <HintButton hintText={room.hintText} />
+          {/* Question Display */}
+          <QuestionDisplay questionText={room.questionText} />
 
-                {/* Answer Input */}
-                <AnswerInput
-                  attemptsRemaining={attemptsRemaining}
-                  maxAttempts={room.maxAttempts}
-                  onSubmit={handleCodeSubmit}
-                />
-              </>
-            )}
-          </div>
+          {/* Basecamp Special: Just Continue Button */}
+          {isBasecamp ? (
+            <div className="text-center mt-8">
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={handleBasecampContinue}
+                className="text-2xl px-12"
+              >
+                CONTINUE TO CHALLENGES →
+              </Button>
+            </div>
+          ) : (
+            <>
+              {/* Hint Button */}
+              <HintButton hintText={room.hintText} />
 
-          {/* Leaderboard Sidebar */}
-          <div className="lg:col-span-1">
+              {/* Answer Input */}
+              <AnswerInput
+                attemptsRemaining={attemptsRemaining}
+                maxAttempts={room.maxAttempts}
+                onSubmit={handleCodeSubmit}
+              />
+            </>
+          )}
+        </div>
+
+        {/* Leaderboard Box - Right Side */}
+        <div className="w-[400px] shrink-0">
+          <div className="sticky top-6">
             <Leaderboard />
           </div>
         </div>

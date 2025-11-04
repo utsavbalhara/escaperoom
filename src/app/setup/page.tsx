@@ -3,12 +3,15 @@
 import React, { useState } from 'react';
 import Button from '@/components/shared/Button';
 import RoboticText from '@/components/shared/RoboticText';
+import Leaderboard from '@/components/player/Leaderboard';
 import { initializeDatabase } from '@/lib/db/init';
+import { useLeaderboardVisibility } from '@/hooks/useLeaderboardVisibility';
 import Link from 'next/link';
 
 export default function SetupPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
+  const isLeaderboardVisible = useLeaderboardVisibility();
 
   const handleInitialize = async () => {
     setStatus('loading');
@@ -26,8 +29,12 @@ export default function SetupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8">
-      <div className="max-w-3xl w-full">
+    <>
+      <Leaderboard />
+      <div className={`min-h-screen flex items-center justify-center p-8 transition-all duration-300 ${
+        isLeaderboardVisible ? 'ml-[280px] lg:ml-[320px]' : 'ml-0'
+      }`}>
+        <div className="max-w-3xl w-full">
         <div className="card">
           <div className="text-center mb-8">
             <RoboticText size="2xl" glow className="mb-4">
@@ -145,7 +152,8 @@ export default function SetupPage() {
             </div>
           )}
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

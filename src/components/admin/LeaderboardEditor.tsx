@@ -118,7 +118,7 @@ export default function LeaderboardEditor() {
                   min={1}
                   max={6}
                   value={formData.currentLevel}
-                  onChange={(e) => setFormData({ ...formData, currentLevel: parseInt(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, currentLevel: parseInt(e.target.value) || 1 })}
                   className="w-full bg-dark border border-primary/30 rounded px-4 py-2"
                 />
               </div>
@@ -130,7 +130,7 @@ export default function LeaderboardEditor() {
                   min={0}
                   max={6}
                   value={formData.roomsCompleted}
-                  onChange={(e) => setFormData({ ...formData, roomsCompleted: parseInt(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, roomsCompleted: parseInt(e.target.value) || 0 })}
                   className="w-full bg-dark border border-primary/30 rounded px-4 py-2"
                 />
               </div>
@@ -141,7 +141,7 @@ export default function LeaderboardEditor() {
                   type="number"
                   min={0}
                   value={formData.totalAttempts}
-                  onChange={(e) => setFormData({ ...formData, totalAttempts: parseInt(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, totalAttempts: parseInt(e.target.value) || 0 })}
                   className="w-full bg-dark border border-primary/30 rounded px-4 py-2"
                 />
               </div>

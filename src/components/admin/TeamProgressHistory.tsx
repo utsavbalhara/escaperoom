@@ -6,6 +6,7 @@ import { TeamProgress } from '@/types';
 import RoboticText from '@/components/shared/RoboticText';
 import { formatDate, formatTime } from '@/lib/utils';
 import { ROOM_NAMES } from '@/constants';
+import { getRoomNames } from '@/lib/db/config';
 
 interface TeamProgressHistoryProps {
   teamId: string;
@@ -17,16 +18,21 @@ export default function TeamProgressHistory({
   teamName,
 }: TeamProgressHistoryProps) {
   const [progressHistory, setProgressHistory] = useState<TeamProgress[]>([]);
+  const [customNames, setCustomNames] = useState<{ [key: number]: string }>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchHistory = async () => {
       setLoading(true);
       try {
-        const history = await getTeamProgressHistory(teamId);
+        const [history, names] = await Promise.all([
+          getTeamProgressHistory(teamId),
+          getRoomNames(),
+        ]);
         // Sort by room number
         const sorted = history.sort((a, b) => a.roomNumber - b.roomNumber);
         setProgressHistory(sorted);
+        setCustomNames(names);
       } catch (error) {
         console.error('Error fetching team history:', error);
       } finally {
@@ -82,7 +88,7 @@ export default function TeamProgressHistory({
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h4 className="text-xl font-bold text-secondary">
-                    {ROOM_NAMES[progress.roomNumber] || `Room ${progress.roomNumber}`}
+                    {customNames[progress.roomNumber] || ROOM_NAMES[progress.roomNumber] || `Room ${progress.roomNumber}`}
                   </h4>
                   <p className="text-sm text-primary/70">
                     Room #{progress.roomNumber}

@@ -50,10 +50,11 @@ export const updateConfig = async (
   updates: Partial<Omit<Config, 'id'>>
 ): Promise<void> => {
   const docRef = doc(db, COLLECTIONS.CONFIG, CONFIG_DOC_ID);
-  await updateDoc(docRef, {
+  // Use setDoc with merge to create document if it doesn't exist
+  await setDoc(docRef, {
     ...updates,
     updatedAt: new Date(),
-  });
+  }, { merge: true });
 };
 
 export const validateAdminPassword = async (password: string): Promise<boolean> => {

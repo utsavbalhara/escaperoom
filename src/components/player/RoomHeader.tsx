@@ -1,7 +1,7 @@
 import React from 'react';
-import { ROOM_NAMES } from '@/constants';
 import RoboticText from '@/components/shared/RoboticText';
 import { clearTeamSession } from '@/lib/auth-storage';
+import { useRoomName } from '@/hooks/useRoomName';
 
 interface RoomHeaderProps {
   roomNumber: number;
@@ -10,6 +10,8 @@ interface RoomHeaderProps {
 }
 
 export default function RoomHeader({ roomNumber, teamName, onLogout }: RoomHeaderProps) {
+  const roomName = useRoomName(roomNumber);
+
   const handleLogout = () => {
     clearTeamSession();
     if (onLogout) {
@@ -25,7 +27,7 @@ export default function RoomHeader({ roomNumber, teamName, onLogout }: RoomHeade
       <div className="flex justify-between items-center">
         <div>
           <RoboticText size="xl" glow>
-            <span className="text-2xl font-bold">{ROOM_NAMES[roomNumber]}</span>
+            <span className="text-2xl font-bold">{roomName}</span>
           </RoboticText>
           <p className="text-secondary mt-1">Room {roomNumber}</p>
         </div>
