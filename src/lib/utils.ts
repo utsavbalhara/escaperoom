@@ -43,10 +43,10 @@ export function getCurrentTimestamp(): Timestamp {
 }
 
 /**
- * Validate numeric code
+ * Validate code (accepts both numeric and alphanumeric strings)
  */
 export function isValidCode(code: string): boolean {
-  return /^\d+$/.test(code) && code.length > 0;
+  return code.trim().length > 0;
 }
 
 /**

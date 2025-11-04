@@ -22,10 +22,10 @@ export default function AnswerInput({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!code.trim() || !isValidCode(code)) {
-      alert('Please enter a valid numeric code');
+      alert('Please enter a valid code');
       return;
     }
-    onSubmit(code);
+    onSubmit(code.trim());
     setCode('');
   };
 
@@ -66,7 +66,7 @@ export default function AnswerInput({
           type="text"
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          placeholder="Enter numeric code..."
+          placeholder="Enter code..."
           className="flex-1 text-2xl text-center font-bold tracking-wider"
           disabled={disabled || attemptsRemaining === 0}
           autoFocus
